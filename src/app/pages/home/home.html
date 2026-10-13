@@ -1,0 +1,83 @@
+<div class="page">
+  <div class="container">
+    <section class="hero" aria-roledescription="карусель" aria-label="Добро пожаловать">
+      <div class="hero__content">
+        <h1 class="hero__title">{{ currentSlide().title }}</h1>
+        <p class="hero__subtitle">{{ currentSlide().subtitle }}</p>
+        <app-button routerLink="/animals" size="lg">
+          {{ currentSlide().ctaLabel }}
+          <span class="btn__icon"><app-icon name="arrow-right" [size]="18" /></span>
+        </app-button>
+      </div>
+      <div class="hero__media">
+        <img [src]="currentSlide().image" [alt]="currentSlide().title" appImgFallback />
+      </div>
+    </section>
+
+    <div class="hero__dots" role="tablist" aria-label="Слайды баннера">
+      @for (slide of slides; track slide.title; let i = $index) {
+        <button
+          type="button"
+          class="dot"
+          [class.dot--active]="active() === i"
+          role="tab"
+          [attr.aria-selected]="active() === i"
+          [attr.aria-label]="'Слайд ' + (i + 1)"
+          (click)="goTo(i)"
+        ></button>
+      }
+    </div>
+
+    <section class="popular">
+      <div class="section-head">
+        <h2>Популярные животные</h2>
+        <a class="link" routerLink="/animals">
+          Смотреть всех
+          <app-icon name="chevron-right" [size]="16" />
+        </a>
+      </div>
+
+      @defer (on viewport) {
+        @if (popularLoading()) {
+          <div class="popular__row">
+            @for (item of skeletons; track item) {
+              <div class="popular__item">
+                <app-skeleton height="210px" radius="var(--radius-md)" />
+                <app-skeleton width="60%" height="18px" />
+                <app-skeleton width="40%" height="14px" />
+              </div>
+            }
+          </div>
+        } @else if (popularAnimals(); as animals) {
+          @if (animals.length === 0) {
+            <app-empty-state title="Пока нет животных" text="Загляните позже — список скоро пополнится." />
+          } @else {
+            <div class="popular__row">
+              @for (animal of animals; track animal.id) {
+                <div class="popular__item">
+                  <app-animal-card [animal]="animal" />
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <app-error-state
+            title="Не удалось загрузить животных"
+            [message]="popularError()"
+            (retry)="popular.reload()"
+          />
+        }
+      } @placeholder {
+        <div class="popular__row">
+          @for (item of skeletons; track item) {
+            <div class="popular__item">
+              <app-skeleton height="210px" radius="var(--radius-md)" />
+              <app-skeleton width="60%" height="18px" />
+              <app-skeleton width="40%" height="14px" />
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</div>

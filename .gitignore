@@ -1,0 +1,63 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Angular build cache
+/.angular
+/.angular/cache
+
+# Node
+/node_modules
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+
+# Coverage and test artifacts
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.history/
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Miscellaneous
+/.sass-cache
+.sass-cache/
+/connect.lock
+
+# System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/

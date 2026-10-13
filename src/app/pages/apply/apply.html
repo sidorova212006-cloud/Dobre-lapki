@@ -1,0 +1,100 @@
+<div class="page">
+  <div class="container">
+    <div class="apply">
+      <aside class="apply__aside">
+        <span class="apply__icon"><app-icon name="paw-print" [size]="30" /></span>
+        <h1 class="apply__title">Заявка на усыновление</h1>
+        <p class="apply__text">
+          Спасибо за желание подарить дом! Заполните короткую форму — мы свяжемся с вами, обсудим
+          детали и поможем организовать встречу.
+        </p>
+
+        @if (animalLoading()) {
+          <div class="apply__animal">
+            <app-skeleton width="64px" height="64px" radius="var(--radius-pill)" />
+            <app-skeleton width="120px" height="18px" />
+          </div>
+        } @else if (animalData(); as animal) {
+          <a class="apply__animal" [routerLink]="['/animals', animal.id]">
+            <img [src]="animal.photos[0]" [alt]="animal.name" appImgFallback />
+            <span>
+              <span class="apply__animal-label">Вы выбрали</span>
+              <span class="apply__animal-name">{{ animal.name }}</span>
+            </span>
+          </a>
+        }
+      </aside>
+
+      <section class="apply__panel">
+        @if (animalLoading()) {
+          <div class="apply__form-skeleton">
+            <app-skeleton width="50%" height="22px" />
+            <app-skeleton height="46px" />
+            <app-skeleton height="46px" />
+            <app-skeleton height="46px" />
+            <app-skeleton height="128px" />
+          </div>
+        } @else {
+          <h2 class="apply__panel-title">Информация о вас</h2>
+
+          @if (animalError()) {
+            <p class="apply__note" role="alert">
+              <app-icon name="circle-alert" [size]="16" />
+              {{ animalError() }}
+            </p>
+          }
+
+          <form class="apply__form" [formGroup]="form" (ngSubmit)="submit()">
+            <app-input
+              formControlName="fullName"
+              label="Имя и фамилия"
+              icon="user"
+              placeholder="Иван Петров"
+              autocomplete="name"
+              [error]="nameError()"
+            />
+
+            <app-input
+              formControlName="email"
+              label="Email"
+              type="email"
+              icon="mail"
+              placeholder="you@example.com"
+              autocomplete="email"
+              [error]="emailError()"
+            />
+
+            <app-input
+              formControlName="phone"
+              label="Телефон"
+              type="tel"
+              icon="phone"
+              placeholder="+7 (900) 000-00-00"
+              autocomplete="tel"
+              [error]="phoneError()"
+            />
+
+            <app-textarea
+              formControlName="about"
+              label="Расскажите о себе"
+              placeholder="Опыт содержания животных, условия проживания и почему вы решили завести друга…"
+              [rows]="5"
+              [error]="aboutError()"
+            />
+
+            @if (serverError()) {
+              <p class="apply__alert" role="alert">
+                <app-icon name="circle-alert" [size]="16" />
+                {{ serverError() }}
+              </p>
+            }
+
+            <app-button type="submit" size="lg" [full]="true" [disabled]="submitting()">
+              {{ submitting() ? 'Отправляем…' : 'Отправить заявку' }}
+            </app-button>
+          </form>
+        }
+      </section>
+    </div>
+  </div>
+</div>

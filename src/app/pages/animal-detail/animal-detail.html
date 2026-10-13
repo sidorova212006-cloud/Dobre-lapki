@@ -1,0 +1,96 @@
+<div class="page">
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Хлебные крошки">
+      <a routerLink="/animals">Животные</a>
+      <app-icon name="chevron-right" [size]="14" />
+      <span>{{ animalData()?.name ?? 'Карточка' }}</span>
+    </nav>
+
+    @if (animalLoading()) {
+      <div class="detail">
+        <div class="detail__gallery">
+          <app-skeleton height="420px" radius="var(--radius-md)" />
+          <div class="detail__thumbs">
+            @for (item of [1, 2, 3]; track item) {
+              <app-skeleton height="86px" radius="var(--radius-sm)" />
+            }
+          </div>
+        </div>
+        <div class="detail__info">
+          <app-skeleton width="40%" height="34px" />
+          <app-skeleton width="60%" height="18px" />
+          <app-skeleton height="90px" />
+          <app-skeleton width="50%" height="20px" />
+        </div>
+      </div>
+    } @else if (animalData(); as animal) {
+      <div class="detail">
+        <div class="detail__gallery">
+          <div class="detail__main">
+            <img [src]="mainPhoto()" [alt]="animal.name" appImgFallback />
+          </div>
+          <div class="detail__thumbs">
+            @for (photo of animal.photos; track photo; let i = $index) {
+              <button
+                type="button"
+                class="thumb"
+                [class.thumb--active]="selected() === i"
+                [attr.aria-label]="'Фото ' + (i + 1)"
+                [attr.aria-pressed]="selected() === i"
+                (click)="selectPhoto(i)"
+              >
+                <img [src]="photo" [alt]="animal.name + ' — фото ' + (i + 1)" appImgFallback />
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="detail__info">
+          <div class="detail__head">
+            <div>
+              <h1 class="detail__name">{{ animal.name }}</h1>
+              <p class="detail__meta">{{ meta() }}</p>
+            </div>
+            <app-heart-button [animalId]="animal.id" [size]="20" />
+          </div>
+
+          <div class="detail__badges">
+            <app-badge tone="soft" text="Ищет дом" />
+            @if (animal.vaccinated) {
+              <app-badge tone="neutral" text="Привит" />
+            }
+          </div>
+
+          <p class="detail__desc">{{ animal.description }}</p>
+
+          <ul class="chars">
+            @for (item of characteristics(); track item.label) {
+              <li class="char">
+                <span class="char__icon"><app-icon [name]="item.icon" [size]="18" /></span>
+                <span class="char__label">{{ item.label }}:</span>
+                <span class="char__value">{{ item.value }}</span>
+              </li>
+            }
+          </ul>
+
+          <div class="detail__actions">
+            <app-button size="lg" (click)="openApplication()">Оставить заявку</app-button>
+            <app-button variant="secondary" size="lg" (click)="toggleFavorite()">
+              {{ isFavorite() ? 'Убрать из избранного' : 'Добавить в избранное' }}
+            </app-button>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <app-error-state
+        title="Животное не найдено"
+        [message]="animalError()"
+        (retry)="animal.reload()"
+      >
+      </app-error-state>
+      <div class="detail__back">
+        <app-button variant="secondary" routerLink="/animals">Вернуться в каталог</app-button>
+      </div>
+    }
+  </div>
+</div>

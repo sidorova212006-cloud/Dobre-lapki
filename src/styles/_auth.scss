@@ -1,0 +1,73 @@
+// Общие стили форм авторизации (вход / регистрация).
+
+.auth-head {
+  margin-bottom: var(--space-6);
+}
+
+.auth-head__title {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.auth-head__text {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.auth-form__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.auth-link {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.auth-form__footer {
+  margin-top: var(--space-1);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.auth-form__footer a {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.auth-form__footer a:hover {
+  text-decoration: underline;
+}
+
+.auth-form__alert {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 12px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+}
