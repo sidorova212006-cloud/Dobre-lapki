@@ -1,0 +1,147 @@
+<div class="page">
+  <div class="container profile">
+    <aside class="profile__menu panel">
+      <div class="profile__identity">
+        @if (user(); as currentUser) {
+          <img class="profile__avatar" [src]="currentUser.avatar" [alt]="currentUser.name" appImgFallback />
+          <p class="profile__username">{{ currentUser.name }}</p>
+          <p class="profile__email">{{ currentUser.email }}</p>
+        }
+      </div>
+
+      <nav class="profile__nav" aria-label="Меню профиля">
+        <button
+          type="button"
+          class="profile__nav-item"
+          [class.profile__nav-item--active]="activeMenu() === 'profile'"
+          (click)="selectMenu('profile')"
+        >
+          <app-icon name="user" [size]="18" />
+          Профиль
+        </button>
+
+        <button
+          type="button"
+          class="profile__nav-item"
+          [class.profile__nav-item--active]="activeMenu() === 'applications'"
+          (click)="selectMenu('applications')"
+        >
+          <app-icon name="calendar" [size]="18" />
+          Мои заявки
+        </button>
+
+        <a class="profile__nav-item" routerLink="/favorites" (click)="openFavorites()">
+          <app-icon name="heart" [size]="18" />
+          Избранное
+        </a>
+
+        <button type="button" class="profile__nav-item profile__nav-item--danger" (click)="logout()">
+          <app-icon name="log-out" [size]="18" />
+          Выйти
+        </button>
+      </nav>
+    </aside>
+
+    <div class="profile__content">
+      <section id="profile-section" class="panel">
+        <div class="section-head">
+          <h1 class="section-head__title">Мой профиль</h1>
+          @if (!editing()) {
+            <app-button variant="secondary" size="sm" (click)="startEdit()">
+              <span class="btn__icon"><app-icon name="pencil" [size]="16" /></span>
+              Редактировать
+            </app-button>
+          }
+        </div>
+
+        @if (editing()) {
+          <form class="profile__form" [formGroup]="form" (ngSubmit)="save()">
+            <app-input formControlName="name" label="Имя" icon="user" [error]="nameError()" />
+            <app-input
+              formControlName="email"
+              label="Email"
+              type="email"
+              icon="mail"
+              [error]="emailError()"
+            />
+            <app-input formControlName="phone" label="Телефон" type="tel" icon="phone" />
+
+            <div class="profile__form-actions">
+              <app-button type="submit" [disabled]="form.invalid">Сохранить</app-button>
+              <app-button variant="secondary" type="button" (click)="cancelEdit()">Отмена</app-button>
+            </div>
+          </form>
+        } @else {
+          <dl class="profile__fields">
+            <div class="profile__field">
+              <dt>Имя</dt>
+              <dd>{{ user()?.name }}</dd>
+            </div>
+            <div class="profile__field">
+              <dt>Email</dt>
+              <dd>{{ user()?.email }}</dd>
+            </div>
+            <div class="profile__field">
+              <dt>Телефон</dt>
+              <dd>{{ user()?.phone }}</dd>
+            </div>
+          </dl>
+        }
+      </section>
+
+      <section id="applications-section" class="panel">
+        <div class="section-head">
+          <h2 class="section-head__title section-head__title--sm">Мои заявки</h2>
+        </div>
+
+        @if (applicationsLoading()) {
+          <div class="profile__apps">
+            @for (item of [1, 2]; track item) {
+              <div class="app-row app-row--skeleton">
+                <app-skeleton width="56px" height="56px" radius="var(--radius-pill)" />
+                <div class="app-row__body">
+                  <app-skeleton width="40%" height="18px" />
+                  <app-skeleton width="30%" height="14px" />
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (applicationsData(); as list) {
+          @if (list.length === 0) {
+            <app-empty-state
+              title="Заявок пока нет"
+              text="Выберите питомца в каталоге и отправьте заявку на усыновление."
+            >
+              <app-button routerLink="/animals">Перейти в каталог</app-button>
+            </app-empty-state>
+          } @else {
+            <div class="profile__apps">
+              @for (application of list; track application.id) {
+                <a class="app-row" [routerLink]="['/animals', application.animal.id]">
+                  <img
+                    class="app-row__photo"
+                    [src]="application.animal.photos[0]"
+                    [alt]="application.animal.name"
+                    appImgFallback
+                  />
+                  <div class="app-row__body">
+                    <span class="app-row__name">{{ application.animal.name }}</span>
+                    <span class="app-row__date">{{ formatDate(application.createdAt) }}</span>
+                  </div>
+                  <app-badge [tone]="application.status" />
+                  <span class="app-row__arrow"><app-icon name="chevron-right" [size]="18" /></span>
+                </a>
+              }
+            </div>
+          }
+        } @else {
+          <app-error-state
+            title="Не удалось загрузить заявки"
+            [message]="applicationsError()"
+            (retry)="applications.reload()"
+          />
+        }
+      </section>
+    </div>
+  </div>
+</div>

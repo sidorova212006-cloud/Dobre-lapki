@@ -1,0 +1,49 @@
+<app-auth-layout>
+  <header class="auth-head">
+    <h1 class="auth-head__title">Вход</h1>
+    <p class="auth-head__text">Рады видеть вас снова. Продолжите путь к новому другу.</p>
+  </header>
+
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+    @if (serverError()) {
+      <p class="auth-form__alert" role="alert">
+        <app-icon name="circle-alert" [size]="16" />
+        {{ serverError() }}
+      </p>
+    }
+
+    <app-input
+      formControlName="email"
+      label="Email"
+      type="email"
+      icon="mail"
+      placeholder="you@example.com"
+      autocomplete="email"
+      [error]="emailError()"
+    />
+
+    <app-input
+      formControlName="password"
+      label="Пароль"
+      type="password"
+      icon="lock"
+      placeholder="••••••"
+      autocomplete="current-password"
+      [error]="passwordError()"
+    />
+
+    <div class="auth-form__row">
+      <app-checkbox formControlName="remember" label="Запомнить меня" />
+      <button type="button" class="auth-link" (click)="forgotPassword()">Забыли пароль?</button>
+    </div>
+
+    <app-button type="submit" size="lg" [full]="true" [disabled]="submitting()">
+      {{ submitting() ? 'Входим…' : 'Войти' }}
+    </app-button>
+
+    <p class="auth-form__footer">
+      Нет аккаунта?
+      <a routerLink="/register">Зарегистрируйтесь</a>
+    </p>
+  </form>
+</app-auth-layout>

@@ -1,0 +1,387 @@
+// ─────────────────────────────────────────────────────────────
+// Глобальные стили контролов: кнопки, поля, чекбоксы, бейджи, сетки.
+// Живут глобально, чтобы UI-компоненты оставались тонкими обёртками.
+// ─────────────────────────────────────────────────────────────
+
+/* ── Кнопки ───────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 46px;
+  padding-inline: 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    box-shadow var(--transition);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--sm {
+  height: 38px;
+  padding-inline: 14px;
+  font-size: 14px;
+}
+.btn--lg {
+  height: 52px;
+  padding-inline: 26px;
+  font-size: 16px;
+}
+.btn--full {
+  width: 100%;
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.btn--secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+.btn--secondary:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn--ghost {
+  height: auto;
+  padding: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.btn--ghost:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.btn--icon {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+}
+
+.btn__icon {
+  display: inline-flex;
+  line-height: 0;
+}
+
+/* ── Поля форм ────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field__icon {
+  position: absolute;
+  left: 14px;
+  display: inline-flex;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  line-height: 0;
+}
+
+.field__suffix {
+  position: absolute;
+  right: 12px;
+  display: inline-flex;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  line-height: 0;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  min-width: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding-inline: 14px;
+  height: 46px;
+  font: inherit;
+  font-size: 15px;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.textarea {
+  height: auto;
+  min-height: 128px;
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.input--with-icon {
+  padding-left: 44px;
+}
+
+.select {
+  appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.input--invalid,
+.textarea--invalid,
+.select--invalid {
+  border-color: var(--color-danger);
+}
+.input--invalid:focus,
+.textarea--invalid:focus,
+.select--invalid:focus {
+  box-shadow: 0 0 0 3px var(--color-danger-soft);
+}
+
+.field__error {
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.field__hint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ── Чекбокс ──────────────────────────────────────────────── */
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checkbox__box {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: #fff;
+  transition:
+    background var(--transition),
+    border-color var(--transition);
+}
+.checkbox__box app-icon {
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.checkbox__input:checked + .checkbox__box {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.checkbox__input:checked + .checkbox__box app-icon {
+  opacity: 1;
+}
+
+.checkbox__input:focus-visible + .checkbox__box {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Бейджи ───────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.badge--pending {
+  background: var(--color-badge-pending-bg);
+  color: var(--color-badge-pending-text);
+}
+.badge--approved {
+  background: var(--color-badge-approved-bg);
+  color: var(--color-badge-approved-text);
+}
+.badge--rejected {
+  background: var(--color-badge-rejected-bg);
+  color: var(--color-badge-rejected-text);
+}
+.badge--soft {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.badge--neutral {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+/* ── Панель / surface ─────────────────────────────────────── */
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+
+/* ── Сетка карточек животных ──────────────────────────────── */
+.animals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+@media (max-width: 1024px) {
+  .animals-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .animals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Скелетон ─────────────────────────────────────────────── */
+.skeleton {
+  display: block;
+  background: linear-gradient(90deg, #ece9e2 25%, #f4f2ed 37%, #ece9e2 63%);
+  background-size: 400% 100%;
+  border-radius: var(--radius-sm);
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ── Карточка животного ───────────────────────────────────── */
+.animal-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition:
+    box-shadow var(--transition),
+    transform var(--transition);
+}
+.animal-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-3px);
+}
+
+.animal-card__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+.animal-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.animal-card:hover .animal-card__media img {
+  transform: scale(1.04);
+}
+
+.animal-card__fav {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+.animal-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-4);
+}
+.animal-card__name {
+  font-size: 16px;
+  font-weight: 700;
+}
+.animal-card__meta {
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
