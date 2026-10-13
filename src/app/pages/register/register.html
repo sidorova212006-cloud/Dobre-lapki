@@ -1,0 +1,63 @@
+<app-auth-layout>
+  <header class="auth-head">
+    <h1 class="auth-head__title">Регистрация</h1>
+    <p class="auth-head__text">Создайте аккаунт, чтобы подавать заявки и сохранять избранное.</p>
+  </header>
+
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+    @if (serverError()) {
+      <p class="auth-form__alert" role="alert">
+        <app-icon name="circle-alert" [size]="16" />
+        {{ serverError() }}
+      </p>
+    }
+
+    <app-input
+      formControlName="name"
+      label="Имя"
+      icon="user"
+      placeholder="Как к вам обращаться"
+      autocomplete="name"
+      [error]="nameError()"
+    />
+
+    <app-input
+      formControlName="email"
+      label="Email"
+      type="email"
+      icon="mail"
+      placeholder="you@example.com"
+      autocomplete="email"
+      [error]="emailError()"
+    />
+
+    <app-input
+      formControlName="password"
+      label="Пароль"
+      type="password"
+      icon="lock"
+      placeholder="Минимум 6 символов"
+      autocomplete="new-password"
+      [error]="passwordError()"
+    />
+
+    <app-input
+      formControlName="confirm"
+      label="Подтверждение пароля"
+      type="password"
+      icon="lock"
+      placeholder="Повторите пароль"
+      autocomplete="new-password"
+      [error]="confirmError()"
+    />
+
+    <app-button type="submit" size="lg" [full]="true" [disabled]="submitting()">
+      {{ submitting() ? 'Создаём аккаунт…' : 'Зарегистрироваться' }}
+    </app-button>
+
+    <p class="auth-form__footer">
+      Уже есть аккаунт?
+      <a routerLink="/login">Войти</a>
+    </p>
+  </form>
+</app-auth-layout>

@@ -1,0 +1,13 @@
+@if (!isBare()) {
+  <app-header />
+}
+
+<main class="app-main">
+  <router-outlet />
+</main>
+
+@if (!isBare()) {
+  <app-footer />
+}
+
+<app-toast-host />

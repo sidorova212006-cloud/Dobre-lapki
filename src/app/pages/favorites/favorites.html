@@ -1,0 +1,39 @@
+<div class="page">
+  <div class="container">
+    <h1 class="favorites__title">Избранное</h1>
+    <p class="favorites__subtitle">Животные, которые вам понравились. Вернитесь к ним, чтобы подать заявку.</p>
+
+    @if (loading()) {
+      <div class="animals-grid">
+        @for (item of skeletons; track item) {
+          <div class="favorites__skeleton">
+            <app-skeleton height="210px" radius="var(--radius-md)" />
+            <app-skeleton width="55%" height="18px" />
+            <app-skeleton width="35%" height="14px" />
+          </div>
+        }
+      </div>
+    } @else if (list(); as animals) {
+      @if (animals.length === 0) {
+        <app-empty-state
+          title="Пока ничего нет"
+          text="Добавляйте питомцев в избранное — они появятся здесь."
+        >
+          <app-button routerLink="/animals">Посмотреть животных</app-button>
+        </app-empty-state>
+      } @else {
+        <div class="animals-grid">
+          @for (animal of animals; track animal.id) {
+            <app-animal-card [animal]="animal" />
+          }
+        </div>
+      }
+    } @else {
+      <app-error-state
+        title="Не удалось загрузить избранное"
+        [message]="error()"
+        (retry)="reload()"
+      />
+    }
+  </div>
+</div>
