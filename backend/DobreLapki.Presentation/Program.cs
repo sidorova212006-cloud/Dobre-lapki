@@ -17,6 +17,10 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Секреты не хранятся в git: шаблон — appsettings.Secrets.example.json.
+builder.Configuration.AddJsonFile(
+    "appsettings.Secrets.json", optional: true, reloadOnChange: true);
+
 builder.Services
     .AddOptions<AppOptions>()
     .Bind(builder.Configuration.GetSection(AppOptions.SectionName))
