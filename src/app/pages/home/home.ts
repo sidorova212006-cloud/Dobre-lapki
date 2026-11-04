@@ -40,7 +40,7 @@ interface HeroSlide {
 export class HomePage {
   private readonly animalsApi = inject(AnimalsService);
 
-  // TODO(IMAGES): заменить на реальные фото из API.
+  // Декоративные изображения hero (заглушки picsum).
   protected readonly slides: readonly HeroSlide[] = [
     {
       title: 'Каждое животное заслуживает любви',

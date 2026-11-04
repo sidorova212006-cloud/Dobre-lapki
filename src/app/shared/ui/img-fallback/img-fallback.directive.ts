@@ -1,6 +1,6 @@
 import { Directive, ElementRef, inject } from '@angular/core';
 
-// TODO(IMAGES): заменить picsum-заглушки на реальные фото из API.
+// Локальная SVG-заглушка на случай, если фото из API недоступно.
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
   <rect width="800" height="800" fill="#E4EDE9"/>
   <g fill="#2F5D50" opacity="0.5">

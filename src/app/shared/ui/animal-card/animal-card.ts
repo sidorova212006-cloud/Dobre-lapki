@@ -39,7 +39,7 @@ import { ImgFallbackDirective } from '../img-fallback/img-fallback.directive';
 export class AnimalCardComponent {
   readonly animal = input.required<Animal>();
 
-  /** TODO(IMAGES): заменить на реальные фото из API. */
+  /** Первое фото животного из API; при отсутствии — локальная заглушка. */
   protected readonly photo = computed(
     () => this.animal().photos[0] ?? 'https://picsum.photos/seed/dp-placeholder/800/600',
   );
