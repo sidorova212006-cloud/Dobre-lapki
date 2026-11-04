@@ -16,11 +16,13 @@ public sealed class InMemoryFavoritesRepository : IFavoritesRepository
     {
     }
 
-    /// <summary>Создаёт хранилище с переданным набором идентификаторов.</summary>
-    public InMemoryFavoritesRepository(IEnumerable<int> seed)
+    private InMemoryFavoritesRepository(IEnumerable<int> seed)
     {
         _ids = (seed ?? Array.Empty<int>()).Distinct().ToList();
     }
+
+    /// <summary>Создаёт хранилище с переданным набором идентификаторов (для тестов).</summary>
+    public static InMemoryFavoritesRepository CreateWith(IEnumerable<int> seed) => new(seed);
 
     /// <inheritdoc />
     public Task<PagedResult<int>> GetPagedAsync(

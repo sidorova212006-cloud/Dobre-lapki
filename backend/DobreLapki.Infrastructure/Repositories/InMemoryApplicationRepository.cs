@@ -20,13 +20,16 @@ public sealed class InMemoryApplicationRepository : IApplicationRepository
     {
     }
 
-    /// <summary>Создаёт репозиторий с переданным набором заявок.</summary>
-    public InMemoryApplicationRepository(IEnumerable<AdoptionApplication> seed)
+    private InMemoryApplicationRepository(IEnumerable<AdoptionApplication> seed)
     {
         var applications = seed?.ToList() ?? new List<AdoptionApplication>();
         _items = applications.ToDictionary(application => application.Id);
         _nextId = _items.Count == 0 ? 1 : _items.Keys.Max() + 1;
     }
+
+    /// <summary>Создаёт репозиторий с переданным набором заявок (для тестов).</summary>
+    public static InMemoryApplicationRepository CreateWith(IEnumerable<AdoptionApplication> seed) =>
+        new(seed);
 
     /// <inheritdoc />
     public Task<PagedResult<AdoptionApplication>> GetPagedAsync(

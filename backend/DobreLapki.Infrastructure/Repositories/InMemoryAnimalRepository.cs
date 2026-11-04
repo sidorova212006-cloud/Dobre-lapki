@@ -28,13 +28,15 @@ public sealed class InMemoryAnimalRepository : IAnimalRepository
     {
     }
 
-    /// <summary>Создаёт репозиторий с переданным набором животных.</summary>
-    public InMemoryAnimalRepository(IEnumerable<Animal> seed)
+    private InMemoryAnimalRepository(IEnumerable<Animal> seed)
     {
         var animals = seed?.ToList() ?? new List<Animal>();
         _items = animals.ToDictionary(animal => animal.Id);
         _nextId = _items.Count == 0 ? 1 : _items.Keys.Max() + 1;
     }
+
+    /// <summary>Создаёт репозиторий с переданным набором животных (для тестов).</summary>
+    public static InMemoryAnimalRepository CreateWith(IEnumerable<Animal> seed) => new(seed);
 
     /// <inheritdoc />
     public Task<PagedResult<Animal>> GetPagedAsync(

@@ -20,13 +20,15 @@ public sealed class InMemoryUserRepository : IUserRepository
     {
     }
 
-    /// <summary>Создаёт репозиторий с переданным набором пользователей.</summary>
-    public InMemoryUserRepository(IEnumerable<User> seed)
+    private InMemoryUserRepository(IEnumerable<User> seed)
     {
         var users = seed?.ToList() ?? new List<User>();
         _items = users.ToDictionary(user => user.Id);
         _nextId = _items.Count == 0 ? 1 : _items.Keys.Max() + 1;
     }
+
+    /// <summary>Создаёт репозиторий с переданным набором пользователей (для тестов).</summary>
+    public static InMemoryUserRepository CreateWith(IEnumerable<User> seed) => new(seed);
 
     /// <inheritdoc />
     public Task<PagedResult<User>> GetPagedAsync(
