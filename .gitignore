@@ -56,6 +56,26 @@ __screenshots__/
 .sass-cache/
 /connect.lock
 
+# .NET / ASP.NET Core
+**/bin/
+**/obj/
+backend/**/uploads/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+TestResults/
+*.coverage
+*.coveragexml
+*.nupkg
+*.snupkg
+
+# Local configuration and secrets
+appsettings.Secrets.json
+appsettings.*.local.json
+secrets.json
+
 # System files
 .DS_Store
 Thumbs.db
