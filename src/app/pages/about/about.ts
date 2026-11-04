@@ -15,7 +15,7 @@ interface Stat {
     <div class="page">
       <div class="container">
         <div class="banner">
-          <!-- TODO(IMAGES): заменить на реальное фото из API -->
+          <!-- Декоративное изображение баннера (заглушка picsum). -->
           <img src="https://picsum.photos/seed/dp-about/1600/700" alt="Собака и кошка вместе" appImgFallback />
           <div class="banner__overlay"></div>
           <h1 class="banner__title">О нас</h1>

@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { interval, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
-import { ANIMALS_API } from '../../core/tokens/injection-tokens';
+import { AnimalsService } from '../../core/services/animals.service';
 import { Animal } from '../../core/models/animal.model';
 import { asyncState } from '../../core/utils/async-state';
 import { AnimalCardComponent } from '../../shared/ui/animal-card/animal-card';
@@ -38,9 +38,9 @@ interface HeroSlide {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
-  private readonly animalsApi = inject(ANIMALS_API);
+  private readonly animalsApi = inject(AnimalsService);
 
-  // TODO(IMAGES): заменить на реальные фото из API.
+  // Декоративные изображения hero (заглушки picsum).
   protected readonly slides: readonly HeroSlide[] = [
     {
       title: 'Каждое животное заслуживает любви',

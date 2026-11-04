@@ -66,9 +66,17 @@
             />
             <app-input formControlName="phone" label="Телефон" type="tel" icon="phone" />
 
+            @if (saveError()) {
+              <p class="profile__error" role="alert">{{ saveError() }}</p>
+            }
+
             <div class="profile__form-actions">
-              <app-button type="submit" [disabled]="form.invalid">Сохранить</app-button>
-              <app-button variant="secondary" type="button" (click)="cancelEdit()">Отмена</app-button>
+              <app-button type="submit" [disabled]="form.invalid || saving()" [loading]="saving()">
+                Сохранить
+              </app-button>
+              <app-button variant="secondary" type="button" [disabled]="saving()" (click)="cancelEdit()">
+                Отмена
+              </app-button>
             </div>
           </form>
         } @else {

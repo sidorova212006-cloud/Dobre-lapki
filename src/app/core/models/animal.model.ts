@@ -38,7 +38,7 @@ export interface Animal {
   ageYears: number;
   breed: string;
   description: string;
-  /** TODO(IMAGES): заменить на реальные фото из API */
+  /** Фотографии животного (URL из API). */
   photos: string[];
   health: string;
   sterilized: boolean;

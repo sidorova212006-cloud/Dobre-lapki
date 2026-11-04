@@ -5,8 +5,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, map, skip } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 
-import { ANIMALS_API } from '../../core/tokens/injection-tokens';
+import { AnimalsService } from '../../core/services/animals.service';
 import { Animal, AnimalGender, AnimalType } from '../../core/models/animal.model';
+import { PagedResult } from '../../core/models/paged-result';
 import { AgeBucket, AnimalFilters, AnimalSort } from '../../core/models/filters.model';
 import { asyncState } from '../../core/utils/async-state';
 import { AnimalCardComponent } from '../../shared/ui/animal-card/animal-card';
@@ -51,7 +52,7 @@ type AgeGroup = FormGroup<{
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogPage {
-  private readonly animalsApi = inject(ANIMALS_API);
+  private readonly animalsApi = inject(AnimalsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -91,7 +92,7 @@ export class CatalogPage {
   protected readonly filtersOpen = signal(false);
   protected readonly skeletons = [0, 1, 2, 3, 4, 5];
 
-  protected readonly result = asyncState<Animal[]>(() => {
+  protected readonly result = asyncState<PagedResult<Animal>>(() => {
     const filters = this.applied();
     const search = this.search().trim();
     return this.animalsApi.getAnimals(search ? { ...filters, search } : filters);
@@ -99,12 +100,12 @@ export class CatalogPage {
 
   protected readonly found = computed(() => {
     const state = this.result.state();
-    return state.status === 'success' ? state.data.length : null;
+    return state.status === 'success' ? state.data.totalCount : null;
   });
 
   protected readonly catalogAnimals = computed(() => {
     const state = this.result.state();
-    return state.status === 'success' ? state.data : null;
+    return state.status === 'success' ? state.data.items : null;
   });
   protected readonly catalogError = computed(() => {
     const state = this.result.state();

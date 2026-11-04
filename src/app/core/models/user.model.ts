@@ -3,7 +3,6 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  /** TODO(IMAGES): avatar URL */
   avatar: string;
 }
 
@@ -18,4 +17,10 @@ export interface RegisterDto {
   email: string;
   phone?: string;
   password: string;
+}
+
+export interface UpdateUserDto {
+  name: string;
+  email: string;
+  phone?: string;
 }

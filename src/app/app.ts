@@ -5,6 +5,7 @@ import { filter, map, startWith } from 'rxjs';
 import { HeaderComponent } from './layout/header/header';
 import { FooterComponent } from './layout/footer/footer';
 import { ToastHostComponent } from './shared/ui/toast/toast-host';
+import { LoaderService } from './core/services/loader.service';
 
 /** Экраны без общей «обвязки» (header/footer). */
 const BARE_ROUTES = ['/login', '/register'];
@@ -17,6 +18,9 @@ const BARE_ROUTES = ['/login', '/register'];
 })
 export class App {
   private readonly router = inject(Router);
+  private readonly loader = inject(LoaderService);
+
+  protected readonly loading = this.loader.isLoading;
 
   private readonly url = toSignal(
     this.router.events.pipe(

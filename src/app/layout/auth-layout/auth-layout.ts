@@ -9,7 +9,7 @@ import { ImgFallbackDirective } from '../../shared/ui/img-fallback/img-fallback.
   template: `
     <div class="auth">
       <aside class="auth__aside">
-        <!-- TODO(IMAGES): заменить на реальное фото из API -->
+        <!-- Декоративное изображение (заглушка picsum). -->
         <img class="auth__photo" src="https://picsum.photos/seed/dp-auth/1200/1400" alt="" appImgFallback />
         <div class="auth__overlay"></div>
         <div class="auth__content">

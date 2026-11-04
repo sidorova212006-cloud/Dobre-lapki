@@ -4,7 +4,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, merge, startWith } from 'rxjs';
 
-import { APPLICATIONS_API, ANIMALS_API } from '../../core/tokens/injection-tokens';
+import { ApplicationsService } from '../../core/services/applications.service';
+import { AnimalsService } from '../../core/services/animals.service';
 import { Animal } from '../../core/models/animal.model';
 import { asyncState, errorMessage } from '../../core/utils/async-state';
 import { controlError } from '../../core/utils/form-errors';
@@ -34,8 +35,8 @@ import { TextareaComponent } from '../../shared/ui/textarea/textarea';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplyPage {
-  private readonly animalsApi = inject(ANIMALS_API);
-  private readonly applicationsApi = inject(APPLICATIONS_API);
+  private readonly animalsApi = inject(AnimalsService);
+  private readonly applicationsApi = inject(ApplicationsService);
   private readonly session = inject(SessionService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);

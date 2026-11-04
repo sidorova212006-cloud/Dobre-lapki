@@ -1,46 +1,148 @@
 # Добрые лапки — приют для животных
 
-Frontend сайта приюта для животных «Добрые лапки» на **Angular 20**. Бэкенда нет: все данные
-приходят из **mock-сервисов** (in-memory, с задержкой 300–800 мс и эмуляцией ошибок). Проект
-полностью готов к подключению реального API — достаточно заменить провайдеры в `app.config.ts`.
+Full-stack проект сайта приюта «Добрые лапки»:
+
+- **Frontend** — SPA на **Angular 20** (standalone-компоненты, сигналы, Reactive Forms).
+- **Backend** — **ASP.NET Core Web API (.NET 8)** с трёхслойной архитектурой, Swagger и xUnit-тестами.
+
+Данные хранятся в памяти (без БД и ORM): репозитории спрятаны за интерфейсами, поэтому замена
+хранилища на реальную БД не затронет домен и контроллеры. Frontend работает с API по HTTP,
+mock-слоя больше нет.
 
 ---
 
 ## Запуск
 
-Требуется Node.js 20+ и Angular CLI 20 (устанавливается как dev-зависимость).
+Требования: **Node.js 20+** и **.NET 8 SDK**.
+
+### 1. Backend
 
 ```bash
-npm install        # установка зависимостей
-npm start          # ng serve → http://localhost:4200
-npm run build      # production-сборка в dist/
-npm test           # unit-тесты (Karma/Jasmine)
+dotnet run --project backend/DobreLapki.Presentation
 ```
 
-> В демо-сборке ошибки API выключены. Чтобы увидеть состояния ошибок и кнопку «Повторить»,
-> откройте любой экран с параметром `?mockError=1`, например
-> `http://localhost:4200/animals?mockError=1`.
+API: `http://localhost:5254`, Swagger (в Development): `http://localhost:5254/swagger`.
+
+### 2. Frontend
+
+```bash
+npm install
+npm start          # ng serve → http://localhost:4200
+```
+
+Dev-сервер проксирует `/api` на `http://localhost:5254` (`proxy.conf.json`), поэтому запускать
+нужно **оба** процесса. В production SPA и API должны быть на одном origin (или настроен
+обратный прокси).
+
+### Сборка и тесты
+
+```bash
+npm run build                                      # production-сборка SPA
+npm test -- --watch=false --browsers=ChromeHeadless # unit-тесты (Karma/Jasmine)
+dotnet test backend/DobreLapki.sln                 # unit + integration тесты
+```
 
 ### Демо-аккаунт
 
-| Поле  | Значение           |
-| ----- | ------------------ |
-| Email | `user@example.com` |
-| Пароль| любой (мин. 6 симв.) |
+| Поле   | Значение           |
+| ------ | ------------------ |
+| Email  | `user@example.com` |
+| Пароль | `password123`      |
 
-Сессия хранится в `localStorage` (или `sessionStorage`, если снять галочку «Запомнить меня»).
-`/profile` и `/apply/:animalId` защищены `authGuard`.
+Токенов и JWT нет: `POST /api/v1/users/login` возвращает профиль пользователя, а SPA хранит его
+в `localStorage` (или `sessionStorage`, если снять галочку «Запомнить меня»). `/profile` и
+`/apply/:animalId` защищены `authGuard`.
+
+> In-memory хранилище очищается при перезапуске API: 15 животных, 2 заявки и демо-пользователь
+> создаются заново из `SeedData`.
 
 ---
 
-## Технологии
+## Архитектура backend
 
-- Angular 20, standalone-компоненты, `loadComponent` (ленивые маршруты).
-- TypeScript `strict` + `strictTemplates`, без `any`.
-- Состояние — на сигналах: `signal()`, `computed()`, `toSignal()` (+ `toObservable()`).
-- Новый control flow: `@if`, `@for`, `@switch`, `@defer`, `@let`.
-- DI через `inject()`. Формы — Reactive Forms. Стили — SCSS поверх дизайн-токенов.
-- Без Angular Material. Иконки — собственный набор на базе **Lucide** (см. ниже).
+```
+backend/
+├── DobreLapki.sln
+├── DobreLapki.Domain/          # сущности, правила, сервисы, интерфейсы репозиториев — без зависимостей
+├── DobreLapki.Infrastructure/  # in-memory репозитории, PBKDF2, MockFileStorage, seed-данные
+├── DobreLapki.Presentation/    # контроллеры, DTO, middleware, Program.cs, конфигурация
+└── DobreLapki.Tests/           # xUnit: домен, репозитории, интеграционные тесты API
+```
+
+- **Domain** не ссылается на Infrastructure/Presentation. Здесь живут `Animal`, `Application`,
+  `User`, доменные правила (`AnimalRules`, `ApplicationRules`, `UserRules`), `TextSanitizer`
+  (защита от XSS), `PaginationGuard`, `IFileStorage`, `IPasswordHasher` и доменные сервисы.
+- **Infrastructure** реализует репозитории поверх `List<T>`/`Dictionary<TKey,TValue>` с `lock`,
+  PBKDF2-хеширование паролей и заглушку файлового хранилища.
+- **Presentation** — тонкие контроллеры: валидация DTO, маппинг в доменные черновики, вызов
+  сервисов. Ошибки обрабатываются глобально.
+- Настройки — через `IOptions<T>` с `ValidateDataAnnotations()` и `ValidateOnStart()`.
+  Секреты в git не попадают: шаблон `appsettings.Secrets.example.json` копируется в
+  `appsettings.Secrets.json` (файл в `.gitignore`).
+
+### API
+
+Базовый путь: `/api/v1`. Все списки постраничные: `{ items, page, pageSize, totalCount }`.
+
+| Метод | Путь | Назначение |
+| ----- | ---- | ---------- |
+| `GET` | `/health` | Проверка доступности |
+| `GET` | `/animals` | Каталог: `page`, `pageSize`, `types`, `genders`, `ages`, `search`, `sort` |
+| `GET` | `/animals/popular?count=5` | Популярные животные |
+| `GET` | `/animals/{id}` | Карточка животного |
+| `POST` | `/animals` | Создать животное (`201` + `Location`) |
+| `PUT` | `/animals/{id}` | Обновить животное |
+| `DELETE` | `/animals/{id}` | Удалить животное (`204`) |
+| `GET` | `/applications` | Заявки (постранично, сначала новые) |
+| `GET` | `/applications/{id}` | Заявка по id |
+| `POST` | `/applications` | Создать заявку (`201` + `Location`) |
+| `PUT` | `/applications/{id}` | Изменить статус заявки |
+| `DELETE` | `/applications/{id}` | Удалить заявку (`204`) |
+| `GET` | `/users` | Пользователи (постранично) |
+| `GET` | `/users/{id}` | Пользователь по id |
+| `POST` | `/users/register` | Регистрация (`201` + `Location`) |
+| `POST` | `/users/login` | Вход (`200`, без токена) |
+| `PUT` | `/users/{id}` | Обновить профиль |
+| `DELETE` | `/users/{id}` | Удалить пользователя (`204`) |
+| `GET` | `/favorites` | Постраничный список id избранного |
+| `POST` | `/favorites/{animalId}` | Добавить в избранное (`201`) |
+| `DELETE` | `/favorites/{animalId}` | Удалить из избранного (`204`) |
+
+Фильтры-мультивыборы передаются через запятую: `types=cat,dog`, `genders=male`,
+`ages=under1,from1to3,over3`. Сортировка: `newest`, `oldest`, `name`. `pageSize` ограничен
+доменом (максимум 100).
+
+Коды ответов: `200`, `201` + `Location`, `204`, `400`, `404`, `409`, `500`. Любая ошибка имеет
+единый формат:
+
+```json
+{
+  "code": "validation_error",
+  "message": "Кличка обязательна.",
+  "traceId": "0HNPQL727K74P:00000006"
+}
+```
+
+Валидация выполняется на трёх уровнях: атрибуты DTO, доменные правила и проверки сервисов.
+Строки проходят санитизацию (`TextSanitizer`), все асинхронные методы принимают
+`CancellationToken`, `.Result`/`.Wait()` не используются.
+
+---
+
+## Frontend: работа с API
+
+- `core/services/api.service.ts` — тонкая обёртка над `HttpClient`: базовый URL `/api/v1`,
+  `get/post/put/delete`, `catchError` с логированием деталей в консоль и преобразованием в
+  `ApiError` (`code`, `message`, `traceId`).
+- `core/services/animals.service.ts`, `applications.service.ts`, `users.service.ts` — фичевые
+  сервисы; `session.service.ts` и `favorites.service.ts` используют их.
+- `core/interceptors/loading.interceptor.ts` + `LoaderService` — глобальный тонкий индикатор
+  загрузки вверху страницы. Локальные спиннеры — у кнопок отправки форм (`ButtonComponent`
+  с `[loading]`).
+- Модели соответствуют DTO backend: `PagedResult<T>`, `Animal`, `Application` (включая
+  `fullName`, `email`, `phone`, `about`), `User`, `LoginDto`, `RegisterDto`, `UpdateUserDto`.
+- Все ошибки списков показываются через `ErrorStateComponent` с кнопкой «Повторить», ошибки
+  форм — toast + сообщение под полем/формой.
 
 ---
 
@@ -55,14 +157,14 @@ src/
 │   ├── _controls.scss             # кнопки, поля, бейджи, сетки, скелетоны
 │   └── _auth.scss                 # общие стили форм входа/регистрации
 └── app/
-    ├── app.config.ts              # провайдеры: роутер + mock API (точка замены на бэкенд)
+    ├── app.config.ts              # роутер + provideHttpClient + interceptor
     ├── app.routes.ts              # ленивые маршруты (loadComponent)
     ├── app.ts / app.html / app.scss
     ├── core/
-    │   ├── models/                # Animal, AnimalFilters, User, Application
-    │   ├── tokens/                # интерфейсы API + InjectionToken'ы
-    │   ├── mock/                  # mock-реализации API + данные животных
-    │   ├── services/              # SessionService, FavoritesService, ToastService
+    │   ├── models/                # Animal, Application, User, PagedResult, ApiError, фильтры
+    │   ├── interceptors/          # loading.interceptor.ts
+    │   ├── services/              # ApiService, AnimalsService, ApplicationsService,
+    │   │                          # UsersService, SessionService, FavoritesService, LoaderService
     │   ├── guards/auth.guard.ts   # AuthGuard для /profile и /apply
     │   └── utils/                 # async-state, form-errors
     ├── layout/
@@ -81,64 +183,39 @@ src/
 
 ### Маршруты
 
-| Путь              | Экран                                         |
-| ----------------- | --------------------------------------------- |
-| `/`               | Главная: hero-карусель (3 слайда) + популярные |
-| `/animals`        | Каталог с фильтрами и сортировкой              |
-| `/animals/:id`    | Карточка животного с галереей                  |
-| `/login`          | Вход (без шапки)                               |
-| `/register`       | Регистрация (без шапки)                        |
-| `/apply/:animalId`| Заявка на усыновление (только для авторизованных) |
-| `/profile`        | Профиль и «Мои заявки» (только для авторизованных) |
-| `/favorites`      | Избранное                                      |
-| `/about`          | О нас                                          |
-| `/contacts`       | Контакты                                       |
-| `**`              | 404 «Страница не найдена»                      |
+| Путь               | Экран                                             |
+| ------------------ | ------------------------------------------------- |
+| `/`                | Главная: hero-карусель (3 слайда) + популярные    |
+| `/animals`         | Каталог с фильтрами и сортировкой                 |
+| `/animals/:id`     | Карточка животного с галереей                     |
+| `/login`           | Вход (без шапки)                                  |
+| `/register`        | Регистрация (без шапки)                           |
+| `/apply/:animalId` | Заявка на усыновление (только для авторизованных) |
+| `/profile`         | Профиль и «Мои заявки» (только для авторизованных)|
+| `/favorites`       | Избранное                                         |
+| `/about`           | О нас                                             |
+| `/contacts`        | Контакты                                          |
+| `**`               | 404 «Страница не найдена»                         |
 
 ---
 
-## Замена mock на реальный бэкенд
+## Тесты
 
-Каждый API описан интерфейсом и зарегистрирован через `InjectionToken`. Чтобы перейти на реальный
-HTTP, нужно **заменить один провайдер** в `src/app/app.config.ts`:
+- **Backend:** 71 тест — доменные правила и `PaginationGuard`, in-memory репозитории,
+  интеграционные тесты через `WebApplicationFactory` (статусы, `Location`, единый формат ошибок,
+  пагинация, избранное, вход/регистрация).
+- **Frontend:** Karma/Jasmine + `HttpTestingController` — `ApiService` (включая преобразование
+  ошибок), `AnimalsService` (параметры фильтров и пагинации), `SessionService` (вход,
+  регистрация, профиль), `FavoritesService`, а также smoke-тест `App`.
 
-```ts
-// было
-{ provide: ANIMALS_API, useClass: MockAnimalsApi },
-// стало
-{ provide: ANIMALS_API, useClass: HttpAnimalsApi },
-```
+---
 
-Точки замены (все помечены комментарием `// TODO(BACKEND): заменить mock на реальный API`):
+## Изображения
 
-| Токен             | Интерфейс (контракт)                                   | Mock-реализация                                  | Методы |
-| ----------------- | ------------------------------------------------------ | ------------------------------------------------ | ------ |
-| `AUTH_API`        | `src/app/core/tokens/api.tokens.ts` → `AuthApi`         | `core/mock/auth.mock.ts` → `MockAuthApi`         | `login`, `register`, `logout`, `currentUser` |
-| `ANIMALS_API`     | `AnimalsApi`                                            | `core/mock/animals.mock.ts` → `MockAnimalsApi`   | `getAnimals(filters)`, `getAnimalById`, `getPopular` |
-| `FAVORITES_API`   | `FavoritesApi`                                          | `core/mock/favorites.mock.ts` → `MockFavoritesApi` | `list`, `toggle`, `has` |
-| `APPLICATIONS_API`| `ApplicationsApi`                                       | `core/mock/applications.mock.ts` → `MockApplicationsApi` | `create`, `getMy` |
-
-Данные животных для мока: `src/app/core/mock/animals.data.ts` (15 животных: кошки, собаки, другие,
-разные возрасты). Логика фильтрации/сортировки — `applyFilters()` в `core/models/filters.model.ts`.
-
-Задержка и эмуляция ошибок — `src/app/core/mock/mock-utils.ts`:
-
-```ts
-export const MOCK_ERROR_RATE = 0; // поставьте 0.15, чтобы изредка видеть ошибки
-// либо откройте приложение с ?mockError=1 — тогда ошибки будут всегда
-```
-
-### Изображения
-
-Фото животных и иллюстрации — заглушки `picsum.photos` с фиксированными seed'ами. В коде помечены
-`// TODO(IMAGES): заменить на реальные фото из API`. Замена — в `core/mock/animals.data.ts`
-(функция `gallery`), а также в баннерах `home`, `about`, `auth-layout`.
-
-Чтобы интерфейс не показывал «сломанные» картинки, если внешний хост недоступен (офлайн, прокси,
-блокировка), все `<img>` помечены директивой `appImgFallback`
+Фото животных приходят из API и в seed-данных заданы ссылками на `picsum.photos`. Если внешний
+хост недоступен (офлайн, прокси, блокировка), все `<img>` используют директиву `appImgFallback`
 (`shared/ui/img-fallback/img-fallback.directive.ts`): при ошибке загрузки подставляется локальная
-SVG-заглушка (data URI, без сети). Когда подключите реальные фото, директиву можно оставить — она
-будет страховать от битых ссылок.
+SVG-заглушка (data URI, без сети).
 
 ---
 
@@ -172,45 +249,38 @@ SVG-заглушка (data URI, без сети). Когда подключит�
 
 ---
 
-## Принятые решения (чего не было в ТЗ)
+## Принятые решения
 
-1. **Иконки.** Используются официальные иконки из пакета `lucide-angular`, но с локальным резолвом
-   вместо DI-токена `LUCIDE_ICONS`: набор `APP_ICONS` (`shared/ui/icon/icon-set.ts`) импортирует
-   нужные иконки, а обёртка `IconComponent` (`shared/ui/icon/icon.ts`) выбирает иконку по kebab-имени
-   и рендерит её через `<lucide-icon [img]>`. Так сохраняется единый линейный стиль Lucide,
-   tree-shaking и не возникает конфликтов с multi-провайдерами. Иконки адресуются по имени:
-   `<app-icon name="paw-print" [size]="20" />`.
-- **Поиск в шапке.** В эталоне у иконки поиска нет отдельного экрана, поэтому она раскрывает
-  строку поиска и ведёт в каталог с параметром `?q=`. Каталог фильтрует по кличке/породе
-  (`AnimalFilters.search`).
-- **Экран «Контакты».** Пункт меню есть в эталоне, но описание экрана в задании отсутствовало —
-  сделана простая страница с контактами и ссылкой в каталог.
-- **Подвал.** Добавлен лёгкий footer на основных страницах (не на экранах входа/регистрации).
-  Карточки «Популярные животные» — в 5 колонок, на планшете/мобильных переходят в 3/2/1.
-- **Сердце-избранное.** Активное состояние окрашено в `--color-primary` (единственный акцент
-  палитры), а не в красный, чтобы не вводить новый цвет вне токенов.
-- **«Забыли пароль?»** Ведёт в toast-заглушку «появится в следующей версии» — бэкенда нет.
-- **Редактирование профиля** сохраняется локально в `SessionService` (без бэкенда).
-- **Эмуляция ошибок.** Чтобы демонстрация была стабильной, по умолчанию `MOCK_ERROR_RATE = 0`;
-  ошибки включаются флагом `?mockError=1` в URL.
-- **Заглушка для фото.** Все `<img>` используют директиву `appImgFallback`: если внешний хост с
-  фото недоступен, подставляется локальная SVG-заглушка — интерфейс не показывает «сломанные»
-  картинки.
-- **Выход из аккаунта** очищает сессию и возвращает на главную (страница `/profile` защищена
-  гардом, поэтому оставаться на ней после выхода некорректно).
-- **Сортировка каталога** вынесена в отдельный `FormControl` (а не в форму фильтров), потому что
-  она находится вне блока фильтров и не должна сбрасываться вместе с ними.
+- **Иконки.** Официальные иконки `lucide-angular` с локальным резолвом вместо DI-токена
+  `LUCIDE_ICONS`: набор `APP_ICONS` импортирует нужные иконки, а `IconComponent` выбирает иконку
+  по kebab-имени и рендерит через `<lucide-icon [img]>`.
+- **Без JWT.** В учебном backend авторизация сведена к простым endpoint'ам входа/регистрации:
+  сервер возвращает профиль, SPA хранит его локально. Токены и защита маршрутов на сервере не
+  добавлялись.
+- **Избранное** — отдельные add/remove endpoint'ы (`POST`/`DELETE /favorites/{animalId}`),
+  список отдаётся постранично как id, чтобы не дублировать данные животных.
+- **Пароли** хешируются PBKDF2 (`PasswordHasher`), в открытом виде не хранятся и не логируются.
+- **Секреты** — `appsettings.Secrets.example.json` как шаблон; реальный
+  `appsettings.Secrets.json` исключён из git.
+- **Ошибки** — единый `ErrorResponse` для middleware, `InvalidModelStateResponseFactory` и
+  доменных исключений (400/404/409), поэтому клиент всегда получает `{code,message,traceId}`.
+- **Поиск в шапке** ведёт в каталог с `?q=`; каталог передаёт это как `search` в API.
+- **«Забыли пароль?»** — toast-заглушка: восстановления пароля в учебном API нет.
+- **Фото** — seed-ссылки `picsum.photos`; директиву `appImgFallback` решено оставить как защиту
+  от битых внешних ссылок.
+- **Сортировка каталога** вынесена в отдельный `FormControl`, потому что она находится вне
+  блока фильтров и не должна сбрасываться вместе с ними.
 
 ---
 
 ## Проверка качества
 
-- `ng build` проходит без ошибок и предупреждений (production).
-- Строгий TypeScript, без `any`; `strictTemplates` включён.
-- Все списки имеют состояния: skeleton → ошибка с кнопкой «Повторить» → пустое состояние.
-- Формы: валидация, блокировка кнопки при невалидности/отправке, ошибки под полями, серверные
-  ошибки, успех — через toast.
+- `npm run build` проходит без ошибок (production); `strict` + `strictTemplates`, без `any`.
+- `dotnet build` — без предупреждений и ошибок; `dotnet test` — 71/71.
+- `npm test` — 14/14 в headless Chrome.
+- Все списки: skeleton → ошибка с кнопкой «Повторить» → пустое состояние.
+- Формы: валидация, блокировка кнопки при невалидности/отправке, локальный спиннер, ошибки под
+  полями, серверные ошибки — toast + консоль.
 - Адаптив: сетка каталога 3 → 2 → 1, мобильная панель фильтров, бургер-меню в шапке.
 - Доступность: семантические теги, `label`, `aria-label`/`aria-pressed`/`aria-expanded` на
-  иконочных кнопках, видимые `:focus-visible`.
-- В коде нет `console.log`.
+  иконочных кнопках, `role="progressbar"` у глобального индикатора, видимые `:focus-visible`.
