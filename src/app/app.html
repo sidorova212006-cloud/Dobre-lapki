@@ -1,3 +1,7 @@
+@if (loading()) {
+  <div class="global-loader" role="progressbar" aria-label="Загрузка данных"></div>
+}
+
 @if (!isBare()) {
   <app-header />
 }

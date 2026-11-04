@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { merge, startWith } from 'rxjs';
+import { merge, map, startWith } from 'rxjs';
 
-import { APPLICATIONS_API } from '../../core/tokens/injection-tokens';
-import { asyncState } from '../../core/utils/async-state';
+import { ApplicationsService } from '../../core/services/applications.service';
+import { Application } from '../../core/models/application.model';
+import { asyncState, errorMessage } from '../../core/utils/async-state';
 import { controlError } from '../../core/utils/form-errors';
 import { SessionService } from '../../core/services/session.service';
 import { FavoritesService } from '../../core/services/favorites.service';
@@ -42,7 +43,7 @@ type MenuKey = 'profile' | 'applications';
 export class ProfilePage {
   private readonly session = inject(SessionService);
   private readonly favorites = inject(FavoritesService);
-  private readonly applicationsApi = inject(APPLICATIONS_API);
+  private readonly applicationsApi = inject(ApplicationsService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
@@ -83,7 +84,9 @@ export class ProfilePage {
     });
   });
 
-  protected readonly applications = asyncState(() => this.applicationsApi.getMy());
+  protected readonly applications = asyncState<Application[]>(() =>
+    this.applicationsApi.getMy().pipe(map((page) => page.items)),
+  );
   protected readonly applicationsData = computed(() => {
     const state = this.applications.state();
     return state.status === 'success' ? state.data : null;
@@ -95,6 +98,9 @@ export class ProfilePage {
   protected readonly applicationsLoading = computed(
     () => this.applications.state().status === 'loading',
   );
+
+  protected readonly saving = signal(false);
+  protected readonly saveError = signal('');
 
   constructor() {
     const user = this.session.user();
@@ -128,14 +134,29 @@ export class ProfilePage {
   }
 
   protected save(): void {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.saving()) {
       this.form.markAllAsTouched();
       return;
     }
+
     const value = this.form.getRawValue();
-    this.session.updateProfile({ name: value.name, email: value.email, phone: value.phone });
-    this.editing.set(false);
-    this.toast.success('Профиль обновлён');
+    this.saving.set(true);
+    this.saveError.set('');
+
+    this.session
+      .updateProfile({ name: value.name, email: value.email, phone: value.phone })
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.editing.set(false);
+          this.toast.success('Профиль обновлён');
+        },
+        error: (error: unknown) => {
+          this.saving.set(false);
+          this.saveError.set(errorMessage(error));
+          this.toast.error(errorMessage(error));
+        },
+      });
   }
 
   protected openFavorites(): void {

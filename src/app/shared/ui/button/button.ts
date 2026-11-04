@@ -21,9 +21,36 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
         <ng-content />
       </a>
     } @else {
-      <button [class]="classes()" [type]="type()" [disabled]="disabled()">
+      <button
+        [class]="classes()"
+        [type]="type()"
+        [disabled]="disabled() || loading()"
+        [attr.aria-busy]="loading()"
+      >
+        @if (loading()) {
+          <span class="btn__spinner" aria-hidden="true"></span>
+        }
         <ng-content />
       </button>
+    }
+  `,
+  styles: `
+    .btn__spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      vertical-align: -2px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: btn-spin 0.7s linear infinite;
+    }
+
+    @keyframes btn-spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +60,7 @@ export class ButtonComponent {
   readonly size = input<ButtonSize>('md');
   readonly full = input(false);
   readonly disabled = input(false);
+  readonly loading = input(false);
   readonly type = input<'button' | 'submit'>('button');
   readonly routerLink = input<string | unknown[] | null>(null);
   readonly href = input<string | null>(null);

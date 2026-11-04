@@ -6,6 +6,10 @@ export interface Application {
   id: number;
   animal: Animal;
   status: ApplicationStatus;
+  fullName: string;
+  email: string;
+  phone: string;
+  about: string;
   /** ISO-дата создания заявки. */
   createdAt: string;
 }
@@ -16,6 +20,10 @@ export interface CreateApplicationDto {
   email: string;
   phone: string;
   about: string;
+}
+
+export interface UpdateApplicationStatusDto {
+  status: ApplicationStatus;
 }
 
 export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {

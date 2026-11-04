@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { ANIMALS_API } from '../../core/tokens/injection-tokens';
+import { AnimalsService } from '../../core/services/animals.service';
 import { Animal } from '../../core/models/animal.model';
+import { PagedResult } from '../../core/models/paged-result';
 import { asyncState } from '../../core/utils/async-state';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { AnimalCardComponent } from '../../shared/ui/animal-card/animal-card';
@@ -23,20 +24,23 @@ import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FavoritesPage {
-  private readonly animalsApi = inject(ANIMALS_API);
+  private readonly animalsApi = inject(AnimalsService);
   private readonly favorites = inject(FavoritesService);
 
   protected readonly skeletons = [0, 1, 2];
 
-  private readonly animals = asyncState<Animal[]>(() => this.animalsApi.getAnimals());
+  private readonly animals = asyncState<PagedResult<Animal>>(() =>
+    this.animalsApi.getAnimals({}, 1, 100),
+  );
 
   protected reload(): void {
     this.animals.reload();
+    this.favorites.reload();
   }
 
   protected readonly data = computed(() => {
     const state = this.animals.state();
-    return state.status === 'success' ? state.data : null;
+    return state.status === 'success' ? state.data.items : null;
   });
   protected readonly error = computed(() => {
     const state = this.animals.state();

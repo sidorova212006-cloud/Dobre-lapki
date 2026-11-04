@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 
-import { ANIMALS_API } from '../../core/tokens/injection-tokens';
+import { AnimalsService } from '../../core/services/animals.service';
 import {
   Animal,
   ANIMAL_GENDER_LABEL,
@@ -43,7 +43,7 @@ interface Characteristic {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnimalDetailPage {
-  private readonly animalsApi = inject(ANIMALS_API);
+  private readonly animalsApi = inject(AnimalsService);
   private readonly favorites = inject(FavoritesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
